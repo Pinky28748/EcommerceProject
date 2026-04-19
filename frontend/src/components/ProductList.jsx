@@ -13,7 +13,7 @@ const ProductList = () => {
 
   const limit = 12;
 
-  // 1. Extract all values from URL
+  // 1. Extract values
   const page = Number(searchParams.get("page") || 1);
   const category = searchParams.get("category") || "";
   const rating = searchParams.get("rating") || "";
@@ -22,7 +22,7 @@ const ProductList = () => {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") || "DESC";
 
-  // 2. Fetch Products with all filters
+  // 2. Fetch Products
   useEffect(() => {
     const params = new URLSearchParams();
     params.append("page", page.toString());
@@ -58,14 +58,14 @@ const ProductList = () => {
       .catch((err) => console.log(err));
   }, []);
 
-  // 4. Auto-scroll on page change
+  // 4. Auto-scroll
   useEffect(() => {
     if (topRef.current) {
       topRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [page]);
 
-  // 5. Shared Filter Logic
+  // 5. Update Logic (Removes key if value is empty)
   const updateFilters = (key, value) => {
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -92,7 +92,6 @@ const ProductList = () => {
     }
   };
 
-  // 6. Pagination & Item Range Calculations
   const totalPages = Math.ceil(total / limit);
   const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
   const endItem = Math.min(page * limit, total);
@@ -101,15 +100,12 @@ const ProductList = () => {
     let pages = [];
     let start = Math.max(1, page - 4);
     let end = Math.min(totalPages, page + 5);
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
+    for (let i = start; i <= end; i++) { pages.push(i); }
     return pages;
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 text-gray-800">
-      {/* Header & Item Range */}
       <div ref={topRef} className="mb-6 flex flex-col gap-2">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Catalog</h1>
@@ -125,10 +121,8 @@ const ProductList = () => {
         </p>
       </div>
 
-      {/* ALL FILTERS BAR */}
-      <div className="flex flex-wrap gap-6 mb-10 p-6 bg-white rounded-xl border border-gray-100 shadow-sm items-end">
-        
-        {/* Category Filter */}
+      {/* FILTER BAR */}
+      <div className="flex flex-wrap gap-6 mb-4 p-6 bg-white rounded-xl border border-gray-100 shadow-sm items-end">
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
           <select
@@ -143,7 +137,6 @@ const ProductList = () => {
           </select>
         </div>
 
-        {/* Rating Filter */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rating</label>
           <select
@@ -158,7 +151,6 @@ const ProductList = () => {
           </select>
         </div>
 
-        {/* Price Range Filter */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price Range</label>
           <div className="flex gap-2">
@@ -179,7 +171,6 @@ const ProductList = () => {
           </div>
         </div>
 
-        {/* Sort Controls */}
         <div className="flex flex-col gap-1 border-l pl-6 border-gray-100">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sort By</label>
           <div className="flex gap-2">
@@ -201,17 +192,49 @@ const ProductList = () => {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Reset Button */}
-        {(category || rating || minPrice || maxPrice || sortBy !== "createdAt") && (
+      {/* NEW: ACTIVE FILTERS AREA */}
+      {(category || rating || minPrice || maxPrice) && (
+        <div className="flex flex-wrap items-center gap-2 mb-8 animate-fadeIn">
+          <span className="text-xs font-bold text-gray-400 uppercase mr-2">Active Filters:</span>
+          
+          {category && (
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+              Category: {category}
+              <button onClick={() => updateFilters("category", "")} className="hover:text-blue-900 font-bold">✕</button>
+            </div>
+          )}
+
+          {rating && (
+            <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium">
+              Rating: {rating}+ Stars
+              <button onClick={() => updateFilters("rating", "")} className="hover:text-yellow-900 font-bold">✕</button>
+            </div>
+          )}
+
+          {minPrice && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+              Min: ${minPrice}
+              <button onClick={() => updateFilters("minPrice", "")} className="hover:text-green-900 font-bold">✕</button>
+            </div>
+          )}
+
+          {maxPrice && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+              Max: ${maxPrice}
+              <button onClick={() => updateFilters("maxPrice", "")} className="hover:text-green-900 font-bold">✕</button>
+            </div>
+          )}
+
           <button
             onClick={() => setSearchParams({ page: 1 })}
-            className="text-xs font-bold text-red-500 hover:underline mb-2 ml-auto"
+            className="text-xs font-bold text-red-500 hover:text-red-700 ml-2 underline underline-offset-4"
           >
-            RESET FILTERS
+            Clear All
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Product Display */}
       {products.length > 0 ? (
@@ -223,6 +246,12 @@ const ProductList = () => {
       ) : (
         <div className="text-center py-24 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
           <p className="text-gray-400 font-medium italic">No products match your current filters.</p>
+          <button 
+             onClick={() => setSearchParams({ page: 1 })}
+             className="mt-4 text-blue-600 font-semibold hover:underline"
+          >
+            Show all products
+          </button>
         </div>
       )}
 
