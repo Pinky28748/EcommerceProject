@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function AddProduct() {
   const titleRef = useRef();
@@ -41,22 +42,13 @@ function AddProduct() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(product),
+      const res = await axios.post("http://localhost:3001/products",product,{
+        headers : {
+          "Content-Type" : "application/json"
+        }
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Failed to add product");
-        return;
-      }
-
-      toast.success("Product added successfully! ");
+    const data = res.data;
+    toast.success("Product added successfully! ");
 
       // Clear fields
       titleRef.current.value = "";

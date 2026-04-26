@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -23,13 +24,11 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/products/${id}`);
+        const res = await axios.get(`http://localhost:3001/products/${id}`);
 
-        if (!res.ok) {
-          throw new Error("Product not found");
-        }
+        
 
-        const data = await res.json();
+        const data = await res.data;
 
         setFormData({
           title: data.title || "",
@@ -64,33 +63,23 @@ const EditProduct = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch(`http://localhost:3001/products/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          price: Number(formData.price),
-          rating: Number(formData.rating),
-          stock: Number(formData.stock),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Update failed");
-        return;
+      const res = await axios.patch(
+      `http://localhost:3001/products/${id}`,
+      {
+        ...formData,
+        price: Number(formData.price),
+        rating: Number(formData.rating),
+        stock: Number(formData.stock),
       }
-
+    );
+      const data =  res.data;
       toast.success("Product updated successfully ");
 
       setTimeout(() => {
         navigate("/");
       }, 1000);
     } catch (err) {
-      toast.error("Server error");
+     toast.error(err.response?.data?.message || "Update failed");
     }
   };
 

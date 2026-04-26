@@ -20,9 +20,9 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/products/${id}`);
-        const data = await res.json();
-        setProduct(data);
+        const res = await axios.get(`http://localhost:3001/products/${id}`);
+        
+        setProduct(res.data);
       } catch (error) {
         console.log("Error fetching product:", error);
       }

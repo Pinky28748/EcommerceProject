@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Product from "./Product"; // ✅ IMPORT
+import axios from "axios";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -10,10 +11,10 @@ const SearchPage = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(
+      const res = await axios.get(
         `http://localhost:3001/products?search=${encodeURIComponent(query)}`
       );
-      const data = await res.json();
+      const data = await res.data;
       setProducts(data.data);
     } catch (err) {
       console.log(err);

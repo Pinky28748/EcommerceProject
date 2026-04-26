@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import Product from "./Product";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -24,31 +25,34 @@ const ProductList = () => {
 
   // 2. Fetch Products
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.append("page", page.toString());
-    params.append("limit", limit.toString());
-    params.append("sortBy", sortBy);
-    params.append("sortOrder", sortOrder);
-
-    if (category) params.append("category", category);
-    if (rating) params.append("rating", rating);
-    if (minPrice) params.append("minPrice", minPrice);
-    if (maxPrice) params.append("maxPrice", maxPrice);
-
-    fetch(`http://localhost:3001/products?${params.toString()}`)
-      .then((res) => {
-        if (!res.ok) return res.json().then((err) => { throw err; });
-        return res.json();
-      })
-      .then((data) => {
-        setProducts(data.data || []);
-        setTotal(data.total || 0);
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-        toast.error("Failed to load products");
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get("http://localhost:3001/products", {
+        params: {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+          ...(category && { category }),
+          ...(rating && { rating }),
+          ...(minPrice && { minPrice }),
+          ...(maxPrice && { maxPrice }),
+        },
       });
-  }, [page, category, rating, minPrice, maxPrice, sortBy, sortOrder]);
+
+      const data = res.data;
+
+      setProducts(data.data || []);
+      setTotal(data.total || 0);
+
+    } catch (err) {
+      console.error("API Error:", err);
+      toast.error(err.response?.data?.message || "Failed to load products");
+    }
+  };
+
+  fetchProducts();
+}, [page, category, rating, minPrice, maxPrice, sortBy, sortOrder]);
 
   // 3. Fetch Categories
   /*useEffect(() => {
@@ -60,9 +64,8 @@ const ProductList = () => {
   useEffect ( () => {
   const fetchCategories = async () => {
     try{
-      const result = await fetch("http://localhost:3001/categories");
-      const data = await result.json();
-      setcategories(data);
+      const result = await axios.get("http://localhost:3001/categories");
+      setcategories(result.data);
 
   }
   catch(error){
@@ -98,8 +101,8 @@ fetchCategories();
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3001/products/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
+      const res = await axios.delete(`http://localhost:3001/products/${id}`);
+      
       toast.success("Product removed");
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
