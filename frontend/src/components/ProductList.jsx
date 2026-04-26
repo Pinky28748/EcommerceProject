@@ -51,13 +51,28 @@ const ProductList = () => {
   }, [page, category, rating, minPrice, maxPrice, sortBy, sortOrder]);
 
   // 3. Fetch Categories
-  useEffect(() => {
+  /*useEffect(() => {
     fetch("http://localhost:3001/categories")
       .then((res) => res.json())
       .then((data) => setcategories(data))
       .catch((err) => console.log(err));
-  }, []);
+  }, []); */
+  useEffect ( () => {
+  const fetchCategories = async () => {
+    try{
+      const result = await fetch("http://localhost:3001/categories");
+      const data = await result.json();
+      setcategories(data);
 
+  }
+  catch(error){
+  console.log(error);
+ }
+};
+fetchCategories();
+ 
+},[])
+  //
   // 4. Auto-scroll
   useEffect(() => {
     if (topRef.current) {
